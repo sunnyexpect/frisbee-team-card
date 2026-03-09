@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>飞盘球队球员卡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+  <div class="login-box" v-show="page === 'login'">
+    <h2>🏃‍♂️ 飞盘球员卡</h2>
+    <input v-model="uid" placeholder="输入球衣编号（如001）" />
+    <button @click="login">进入球队</button>
+    <p style="margin-top:10px; font-size:12px; color:#666">队长请输入管理密码</p>
+  </div>
+
+  <div v-show="page === 'user'">
+    <header>我的球员卡</header>
+    <card :player="my"></card>
+  </div>
+
+  <div v-show="page === 'admin'">
+    <header>队长管理面板</header>
+    <div class="list">
+      <div v-for="p in players" @click="select(p)" style="cursor:pointer">
+        #{{ p.number }} {{ p.name }}
+      </div>
+    </div>
+    <card :player="current" v-if="current"></card>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
