@@ -9,54 +9,15 @@
 <body>
 
 <div id="app">
-  <!-- 登录注册 -->
-  <div class="login-wrap" v-show="!isLogin">
-    <div class="login-box">
-      <h2>🏆 飞盘球员卡</h2>
-      <div class="tab">
-        <button @click="page='login'" :class="page=='login'?'active':''">登录</button>
-        <button @click="page='register'" :class="page=='register'?'active':''">注册</button>
-      </div>
+  <div class="title">🏆 飞盘球员卡系统</div>
 
-      <div v-show="page=='login'">
-        <input v-model="username" placeholder="账号" />
-        <input v-model="password" type="password" placeholder="密码" />
-        <button class="btn" @click="login">登录</button>
-      </div>
-
-      <div v-show="page=='register'">
-        <input v-model="username" placeholder="账号" />
-        <input v-model="password" type="password" placeholder="密码" />
-        <input v-model="adminKey" placeholder="队长密钥" />
-        <button class="btn" @click="register">注册</button>
-      </div>
-    </div>
+  <div class="box">
+    <button @click="toLogin">登录</button>
+    <button @click="toRegister">注册</button>
   </div>
 
-  <!-- 队员页面 -->
-  <div v-show="isLogin && !isAdmin">
-    <header>我的球员卡</header>
-    <div class="body">
-      <div class="avatar-box">
-        <img :src="avatar" alt="头像">
-        <input type="file" accept="image/*" @change="uploadAvatar">
-      </div>
-      <button class="btn" @click="saveMy">保存资料</button>
-    </div>
-  </div>
-
-  <!-- 管理员页面 -->
-  <div v-show="isLogin && isAdmin">
-    <header>队长管理</header>
-    <div class="body">
-      <div class="add-box">
-        <input v-model="newPlayer" placeholder="输入队员姓名">
-        <button class="btn" @click="addPlayer">+ 添加队员</button>
-      </div>
-      <div class="list">
-        <div v-for="p in players" @click="toDetail(p)">{{ p.name }}</div>
-      </div>
-    </div>
+  <div class="tips">
+    队长注册密钥：captain2026
   </div>
 </div>
 
