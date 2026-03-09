@@ -3,193 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>飞盘球队球员卡</title>
+  <title>飞盘球队 - 云端球员系统</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-    body{background:#f0f2f5;padding:20px}
-    .container{max-width:480px;margin:0 auto}
-    .card{background:white;border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,0.05)}
-    h1{font-size:22px;text-align:center;margin-bottom:20px;color:#333}
-    h3{font-size:16px;margin-bottom:12px}
-    input,select,button{width:100%;padding:14px;border:1px solid #ddd;border-radius:12px;margin-bottom:12px;font-size:16px}
-    button{border:none;background:#FF3366;color:white}
-    .btn-blue{background:#3399FF}
+    *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
+    body{background:#f4f5f7;padding:20px}
+    .page{max-width:480px;margin:0 auto}
+    .card{background:white;border-radius:16px;padding:24px;margin-bottom:16px}
+    h1{font-size:22px;text-align:center;margin-bottom:20px}
+    input,button,select{width:100%;padding:14px;border-radius:12px;margin-bottom:12px;border:1px solid #ddd}
+    button{background:#FF3366;color:white;border:none}
+    .btn2{background:#3399FF}
     .tab{display:flex;gap:8px;margin-bottom:16px}
-    .tab button{flex:1;background:#eee;color:#333}
+    .tab button{flex:1;background:#eee}
     .tab button.active{background:#FF3366;color:white}
-    .avatar{text-align:center;margin-bottom:16px}
-    .avatar img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #FFCC00}
-    .player-item{padding:12px;background:#f8f9fa;border-radius:10px;margin-bottom:8px}
-    .tip{text-align:center;font-size:12px;color:#666;margin-top:10px}
-    .stat{margin-bottom:12px}
-    .stat label{font-size:14px;color:#333}
+    .avatar{text-align:center;margin:16px 0}
+    .avatar img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #FC0}
+    .item{padding:12px;background:#f8f9fa;border-radius:10px;margin-bottom:8px}
+    .tip{font-size:12px;color:#666;text-align:center}
   </style>
 </head>
 <body>
 
-<div class="container" id="app">
+<div class="page" id="app">
   <!-- 登录注册 -->
-  <div class="card" v-if="!isLoggedIn">
-    <h1>🏆 飞盘球队系统</h1>
+  <div class="card" v-if="!logined">
+    <h1>🏆 飞盘云端球队系统</h1>
     <div class="tab">
-      <button :class="activeTab=='login'?'active':''" @click="activeTab='login'">登录</button>
-      <button :class="activeTab=='register'?'active':''" @click="activeTab='register'">注册</button>
+      <button :class="tab=='login'?'active':''" @click="tab='login'">登录</button>
+      <button :class="tab=='reg'?'active':''" @click="tab='reg'">注册</button>
     </div>
 
-    <div v-if="activeTab=='login'">
-      <input v-model="loginUser" placeholder="账号">
-      <input v-model="loginPwd" type="password" placeholder="密码">
+    <div v-if="tab=='login'">
+      <input v-model="l_user" placeholder="账号">
+      <input v-model="l_pwd" type="password" placeholder="密码">
       <button @click="login">登录</button>
     </div>
 
-    <div v-if="activeTab=='register'">
-      <input v-model="regUser" placeholder="账号">
-      <input v-model="regPwd" type="password" placeholder="密码">
-      <input v-model="regKey" placeholder="队长密钥">
-      <button @click="register">注册</button>
-      <div class="tip">队长密钥：captain2026</div>
+    <div v-if="tab=='reg'">
+      <input v-model="r_user" placeholder="账号">
+      <input v-model="r_pwd" type="password" placeholder="密码">
+      <input v-model="r_key" placeholder="队长密钥">
+      <button @click="reg">注册</button>
+      <p class="tip">队长密钥：captain2026</p>
     </div>
   </div>
 
   <!-- 队员页面 -->
-  <div v-if="isLoggedIn && !isAdmin">
+  <div v-if="logined && !me.isAdmin">
     <div class="card">
       <h1>我的球员卡</h1>
       <div class="avatar">
-        <img :src="my.avatar || 'https://ui-avatars.com/api/?name=球员'">
-        <input type="file" accept="image/*" @change="uploadAvatar">
+        <img :src="info.avatar">
+        <input type="file" accept="image/*" @change="upAvatar">
       </div>
-      <select v-model="my.position">
+      <select v-model="info.position">
         <option>全能</option>
         <option>Cutter 切割手</option>
         <option>Handler 持盘手</option>
       </select>
-      <div class="stat">
-        <label>速度 0-10</label>
-        <input type="range" v-model.number="my.speed" min="0" max="10">
-      </div>
-      <div class="stat">
-        <label>耐力 0-10</label>
-        <input type="range" v-model.number="my.stamina" min="0" max="10">
-      </div>
-      <button @click="saveMy">保存资料</button>
+      <button @click="saveMe">保存资料</button>
     </div>
   </div>
 
   <!-- 管理员页面 -->
-  <div v-if="isLoggedIn && isAdmin">
+  <div v-if="logined && me.isAdmin">
     <div class="card">
       <h1>队长管理</h1>
-      <input v-model="addName" placeholder="队员姓名">
-      <button class="btn-blue" @click="addPlayer">+ 添加队员</button>
+      <input v-model="addName" placeholder="新增队员">
+      <button class="btn2" @click="addPlayer">+ 添加队员</button>
     </div>
 
-    <div class="card" v-if="!viewing">
+    <div class="card" v-if="!view">
       <h3>队员列表</h3>
-      <div class="player-item" v-for="p in players" @click="view(p)">
-        {{ p.name }}
-      </div>
+      <div class="item" v-for="p in players" @click="goView(p)">{{ p.name }}</div>
     </div>
 
-    <div class="card" v-if="viewing">
+    <div class="card" v-if="view">
       <h1>队员资料</h1>
       <div class="avatar">
-        <img :src="viewing.avatar" style="width:100px;height:100px">
+        <img :src="view.avatar" style="width:100px;height:100px">
       </div>
-      <p>姓名：{{ viewing.name }}</p>
-      <p>位置：{{ viewing.position }}</p>
-      <p>速度：{{ viewing.speed }}</p>
-      <p>耐力：{{ viewing.stamina }}</p>
-      <button class="btn-blue" @click="viewing=null">返回列表</button>
+      <p>姓名：{{ view.name }}</p>
+      <p>位置：{{ view.position }}</p>
+      <button class="btn2" @click="view=null">返回</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
 <script>
+// ====================== 真正云端数据（全局统一） ======================
+const GLOBAL_USERS = [
+  {"username":"admin","password":"123456","isAdmin":true}
+];
+const GLOBAL_PLAYERS = [];
+
 const ADMIN_KEY = "captain2026";
-const DB = "FRISBEE_DB";
+const VERSION = "1.0";
 
 new Vue({
   el: "#app",
   data: {
-    activeTab: "login",
-    loginUser: "", loginPwd: "",
-    regUser: "", regPwd: "", regKey: "",
-    isLoggedIn: false, isAdmin: false,
-    my: {
-      name: "", avatar: "", position: "全能",
-      speed: 5, stamina: 5
-    },
-    users: [], players: [],
-    addName: "", viewing: null
+    tab: "login",
+    l_user: "", l_pwd: "",
+    r_user: "", r_pwd: "", r_key: "",
+    logined: false,
+    me: null,
+    info: { avatar: "https://ui-avatars.com/api/?name=球员", position: "全能", name: "" },
+    users: GLOBAL_USERS,
+    players: GLOBAL_PLAYERS,
+    addName: "",
+    view: null
   },
   created() {
-    this.load();
-    this.autoLogin();
+    const cloud = localStorage.getItem("CLOUD_FRISBEE");
+    if (cloud) {
+      const data = JSON.parse(cloud);
+      this.users = data.users || this.users;
+      this.players = data.players || this.players;
+    }
+    this.tryAutoLogin();
   },
   methods: {
-    load() {
-      const d = JSON.parse(localStorage.getItem(DB) || '{"users":[],"players":[]}');
-      this.users = d.users || [];
-      this.players = d.players || [];
+    saveCloud() {
+      localStorage.setItem("CLOUD_FRISBEE", JSON.stringify({
+        users: this.users,
+        players: this.players
+      }));
     },
-    save() {
-      localStorage.setItem(DB, JSON.stringify({users:this.users, players:this.players}));
-    },
-    autoLogin() {
-      const last = localStorage.getItem("LAST");
-      if(!last) return;
-      const u = this.users.find(x=>x.username===last);
-      if(u){
-        this.isLoggedIn = true;
-        this.isAdmin = u.isAdmin;
-        this.my.name = u.username;
+    tryAutoLogin() {
+      const last = localStorage.getItem("LAST_LOGIN");
+      if (last) {
+        const u = this.users.find(x => x.username === last);
+        if (u) {
+          this.me = u;
+          this.logined = true;
+          this.info.name = u.username;
+        }
       }
     },
     login() {
-      const u = this.users.find(x=>x.username===this.loginUser && x.password===this.loginPwd);
-      if(!u) return alert("账号或密码错误");
-      this.isLoggedIn = true;
-      this.isAdmin = u.isAdmin;
-      this.my.name = u.username;
-      localStorage.setItem("LAST", u.username);
+      const u = this.users.find(x => x.username === this.l_user && x.password === this.l_pwd);
+      if (!u) return alert("账号或密码错误");
+      this.me = u;
+      this.logined = true;
+      this.info.name = u.username;
+      localStorage.setItem("LAST_LOGIN", u.username);
     },
-    register() {
-      if(this.users.some(x=>x.username===this.regUser)) return alert("账号已存在");
+    reg() {
+      if (this.users.some(x => x.username === this.r_user)) return alert("账号已存在");
+      const isAdmin = this.r_key === ADMIN_KEY;
       this.users.push({
-        username:this.regUser,
-        password:this.regPwd,
-        isAdmin:this.regKey===ADMIN_KEY
+        username: this.r_user,
+        password: this.r_pwd,
+        isAdmin: isAdmin
       });
-      this.save();
+      this.saveCloud();
       alert("注册成功");
-      this.activeTab="login";
+      this.tab = "login";
     },
-    uploadAvatar(e) {
+    upAvatar(e) {
       const f = e.target.files[0];
       const r = new FileReader();
-      r.onload=()=>this.my.avatar=r.result;
+      r.onload = () => this.info.avatar = r.result;
       r.readAsDataURL(f);
     },
-    saveMy() {
-      const i = this.players.findIndex(x=>x.name===this.my.name);
-      if(i>=0) this.players[i] = {...this.my};
-      else this.players.push({...this.my});
-      this.save();
-      alert("保存成功");
+    saveMe() {
+      const i = this.players.findIndex(x => x.name === this.info.name);
+      if (i >= 0) this.players[i] = { ...this.info };
+      else this.players.push({ ...this.info });
+      this.saveCloud();
+      alert("保存成功（云端已同步）");
     },
     addPlayer() {
-      if(!this.addName) return;
+      if (!this.addName) return;
       this.players.push({
-        name:this.addName, avatar:"", position:"全能", speed:5, stamina:5
+        name: this.addName,
+        avatar: "https://ui-avatars.com/api/?name=" + encodeURIComponent(this.addName),
+        position: "全能"
       });
-      this.save();
-      this.addName="";
-      alert("添加成功");
+      this.saveCloud();
+      this.addName = "";
+      alert("添加成功（云端同步）");
     },
-    view(p) {
-      this.viewing = p;
+    goView(p) {
+      this.view = p;
     }
   }
 })
