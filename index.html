@@ -5,288 +5,194 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>飞盘球队球员卡</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    body {
-      background: #f0f2f5;
-      padding: 20px;
-    }
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-    }
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    h1 {
-      font-size: 22px;
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    input, select {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      font-size: 16px;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      background: #FF3366;
-      color: white;
-      font-size: 16px;
-      margin-bottom: 8px;
-    }
-    .btn-secondary {
-      background: #3399FF;
-    }
-    .tab {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .tab button {
-      flex: 1;
-      background: #eee;
-      color: #333;
-    }
-    .tab button.active {
-      background: #FF3366;
-      color: white;
-    }
-    .avatar {
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .avatar img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #FFCC00;
-    }
-    .player-item {
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 10px;
-      margin-bottom: 8px;
-    }
-    .tip {
-      text-align: center;
-      font-size: 12px;
-      color: #666;
-      margin-top: 10px;
-    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+    body{background:#f0f2f5;padding:20px}
+    .container{max-width:480px;margin:0 auto}
+    .card{background:white;border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,0.05)}
+    h1{font-size:22px;text-align:center;margin-bottom:20px;color:#333}
+    h3{font-size:16px;margin-bottom:12px}
+    input,select,button{width:100%;padding:14px;border:1px solid #ddd;border-radius:12px;margin-bottom:12px;font-size:16px}
+    button{border:none;background:#FF3366;color:white}
+    .btn-blue{background:#3399FF}
+    .tab{display:flex;gap:8px;margin-bottom:16px}
+    .tab button{flex:1;background:#eee;color:#333}
+    .tab button.active{background:#FF3366;color:white}
+    .avatar{text-align:center;margin-bottom:16px}
+    .avatar img{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #FFCC00}
+    .player-item{padding:12px;background:#f8f9fa;border-radius:10px;margin-bottom:8px}
+    .tip{text-align:center;font-size:12px;color:#666;margin-top:10px}
+    .stat{margin-bottom:12px}
+    .stat label{font-size:14px;color:#333}
   </style>
 </head>
 <body>
 
 <div class="container" id="app">
-  <!-- ====================== 未登录 ====================== -->
+  <!-- 登录注册 -->
   <div class="card" v-if="!isLoggedIn">
     <h1>🏆 飞盘球队系统</h1>
     <div class="tab">
-      <button :class="activeTab === 'login' ? 'active' : ''" @click="switchTab('login')">登录</button>
-      <button :class="activeTab === 'register' ? 'active' : ''" @click="switchTab('register')">注册</button>
+      <button :class="activeTab=='login'?'active':''" @click="activeTab='login'">登录</button>
+      <button :class="activeTab=='register'?'active':''" @click="activeTab='register'">注册</button>
     </div>
 
-    <!-- 登录 -->
-    <div v-if="activeTab === 'login'">
-      <input v-model="loginForm.username" placeholder="账号" />
-      <input v-model="loginForm.password" type="password" placeholder="密码" />
+    <div v-if="activeTab=='login'">
+      <input v-model="loginUser" placeholder="账号">
+      <input v-model="loginPwd" type="password" placeholder="密码">
       <button @click="login">登录</button>
     </div>
 
-    <!-- 注册 -->
-    <div v-if="activeTab === 'register'">
-      <input v-model="regForm.username" placeholder="设置账号" />
-      <input v-model="regForm.password" type="password" placeholder="设置密码" />
-      <input v-model="regForm.adminKey" placeholder="队长密钥（没有留空）" />
+    <div v-if="activeTab=='register'">
+      <input v-model="regUser" placeholder="账号">
+      <input v-model="regPwd" type="password" placeholder="密码">
+      <input v-model="regKey" placeholder="队长密钥">
       <button @click="register">注册</button>
       <div class="tip">队长密钥：captain2026</div>
     </div>
   </div>
 
-  <!-- ====================== 队员页面 ====================== -->
-  <div v-if="isLoggedIn && !currentUser.isAdmin">
+  <!-- 队员页面 -->
+  <div v-if="isLoggedIn && !isAdmin">
     <div class="card">
       <h1>我的球员卡</h1>
       <div class="avatar">
-        <img :src="myInfo.avatar || 'https://ui-avatars.com/api/?name=球员'" alt="头像">
-        <input type="file" accept="image/*" @change="uploadAvatar" style="margin-top:10px">
+        <img :src="my.avatar || 'https://ui-avatars.com/api/?name=球员'">
+        <input type="file" accept="image/*" @change="uploadAvatar">
       </div>
-
-      <select v-model="myInfo.position">
+      <select v-model="my.position">
         <option>全能</option>
         <option>Cutter 切割手</option>
         <option>Handler 持盘手</option>
       </select>
-
-      <button @click="saveMyInfo">保存我的资料</button>
+      <div class="stat">
+        <label>速度 0-10</label>
+        <input type="range" v-model.number="my.speed" min="0" max="10">
+      </div>
+      <div class="stat">
+        <label>耐力 0-10</label>
+        <input type="range" v-model.number="my.stamina" min="0" max="10">
+      </div>
+      <button @click="saveMy">保存资料</button>
     </div>
   </div>
 
-  <!-- ====================== 管理员页面 ====================== -->
-  <div v-if="isLoggedIn && currentUser.isAdmin">
+  <!-- 管理员页面 -->
+  <div v-if="isLoggedIn && isAdmin">
     <div class="card">
-      <h1>队长管理面板</h1>
-      <input v-model="newPlayerName" placeholder="输入队员姓名" />
-      <button class="btn-secondary" @click="addPlayer">+ 添加队员</button>
+      <h1>队长管理</h1>
+      <input v-model="addName" placeholder="队员姓名">
+      <button class="btn-blue" @click="addPlayer">+ 添加队员</button>
     </div>
 
-    <div class="card">
-      <h3>全队队员</h3>
-      <div class="player-item" v-for="p in playerList" @click="viewPlayer(p)">
+    <div class="card" v-if="!viewing">
+      <h3>队员列表</h3>
+      <div class="player-item" v-for="p in players" @click="view(p)">
         {{ p.name }}
       </div>
     </div>
 
-    <div class="card" v-if="selectedPlayer">
-      <h3>队员资料</h3>
+    <div class="card" v-if="viewing">
+      <h1>队员资料</h1>
       <div class="avatar">
-        <img :src="selectedPlayer.avatar" style="width:80px;height:80px">
+        <img :src="viewing.avatar" style="width:100px;height:100px">
       </div>
-      <p>姓名：{{ selectedPlayer.name }}</p>
-      <p>位置：{{ selectedPlayer.position }}</p>
-      <button @click="selectedPlayer = null">关闭</button>
+      <p>姓名：{{ viewing.name }}</p>
+      <p>位置：{{ viewing.position }}</p>
+      <p>速度：{{ viewing.speed }}</p>
+      <p>耐力：{{ viewing.stamina }}</p>
+      <button class="btn-blue" @click="viewing=null">返回列表</button>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
 <script>
-// ==================== 配置 ====================
-const ADMIN_SECRET = "captain2026";
-const DB_NAME = "FRISBEE_TEAM_CLOUD";
+const ADMIN_KEY = "captain2026";
+const DB = "FRISBEE_DB";
 
-const app = new Vue({
+new Vue({
   el: "#app",
   data: {
     activeTab: "login",
-    isLoggedIn: false,
-    currentUser: null,
-
-    loginForm: { username: "", password: "" },
-    regForm: { username: "", password: "", adminKey: "" },
-
-    myInfo: {
-      name: "",
-      avatar: "",
-      position: "全能"
+    loginUser: "", loginPwd: "",
+    regUser: "", regPwd: "", regKey: "",
+    isLoggedIn: false, isAdmin: false,
+    my: {
+      name: "", avatar: "", position: "全能",
+      speed: 5, stamina: 5
     },
-
-    newPlayerName: "",
-    playerList: [],
-    selectedPlayer: null
+    users: [], players: [],
+    addName: "", viewing: null
   },
-
   created() {
-    this.loadCloudData();
-    this.tryAutoLogin();
+    this.load();
+    this.autoLogin();
   },
-
   methods: {
-    // ========== 云端存储 ==========
-    loadCloudData() {
-      const data = JSON.parse(localStorage.getItem(DB_NAME) || '{"users":[],"players":[]}');
-      this.users = data.users || [];
-      this.playerList = data.players || [];
+    load() {
+      const d = JSON.parse(localStorage.getItem(DB) || '{"users":[],"players":[]}');
+      this.users = d.users || [];
+      this.players = d.players || [];
     },
-    saveCloudData() {
-      localStorage.setItem(DB_NAME, JSON.stringify({
-        users: this.users,
-        players: this.playerList
-      }));
+    save() {
+      localStorage.setItem(DB, JSON.stringify({users:this.users, players:this.players}));
     },
-
-    // ========== 自动登录 ==========
-    tryAutoLogin() {
-      const last = localStorage.getItem("LAST_LOGIN");
-      if (!last) return;
-      const user = this.users.find(u => u.username === last);
-      if (user) {
-        this.currentUser = user;
+    autoLogin() {
+      const last = localStorage.getItem("LAST");
+      if(!last) return;
+      const u = this.users.find(x=>x.username===last);
+      if(u){
         this.isLoggedIn = true;
-        this.myInfo.name = user.username;
+        this.isAdmin = u.isAdmin;
+        this.my.name = u.username;
       }
     },
-
-    // ========== 登录 ==========
     login() {
-      const { username, password } = this.loginForm;
-      const user = this.users.find(u => u.username === username && u.password === password);
-      if (!user) return alert("账号或密码错误");
-      
-      this.currentUser = user;
+      const u = this.users.find(x=>x.username===this.loginUser && x.password===this.loginPwd);
+      if(!u) return alert("账号或密码错误");
       this.isLoggedIn = true;
-      this.myInfo.name = user.username;
-      localStorage.setItem("LAST_LOGIN", username);
+      this.isAdmin = u.isAdmin;
+      this.my.name = u.username;
+      localStorage.setItem("LAST", u.username);
     },
-
-    // ========== 注册 ==========
     register() {
-      const { username, password, adminKey } = this.regForm;
-      if (!username || !password) return alert("请输入账号密码");
-      if (this.users.some(u => u.username === username)) return alert("账号已存在");
-
-      const isAdmin = adminKey === ADMIN_SECRET;
-      this.users.push({ username, password, isAdmin });
-      this.saveCloudData();
-      alert("注册成功！请登录");
-      this.switchTab("login");
-    },
-
-    // ========== 头像上传 ==========
-    uploadAvatar(e) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = () => this.myInfo.avatar = reader.result;
-      reader.readAsDataURL(file);
-    },
-
-    // ========== 保存个人资料 ==========
-    saveMyInfo() {
-      const index = this.playerList.findIndex(p => p.name === this.myInfo.name);
-      if (index >= 0) this.playerList[index] = { ...this.myInfo };
-      else this.playerList.push({ ...this.myInfo });
-      this.saveCloudData();
-      alert("保存成功！");
-    },
-
-    // ========== 管理员 - 添加队员 ==========
-    addPlayer() {
-      if (!this.newPlayerName) return;
-      this.playerList.push({
-        name: this.newPlayerName,
-        avatar: "",
-        position: "全能"
+      if(this.users.some(x=>x.username===this.regUser)) return alert("账号已存在");
+      this.users.push({
+        username:this.regUser,
+        password:this.regPwd,
+        isAdmin:this.regKey===ADMIN_KEY
       });
-      this.saveCloudData();
-      this.newPlayerName = "";
-      alert("添加队员成功");
+      this.save();
+      alert("注册成功");
+      this.activeTab="login";
     },
-
-    // ========== 管理员 - 查看队员 ==========
-    viewPlayer(p) {
-      this.selectedPlayer = p;
+    uploadAvatar(e) {
+      const f = e.target.files[0];
+      const r = new FileReader();
+      r.onload=()=>this.my.avatar=r.result;
+      r.readAsDataURL(f);
     },
-
-    switchTab(tab) { this.activeTab = tab; }
+    saveMy() {
+      const i = this.players.findIndex(x=>x.name===this.my.name);
+      if(i>=0) this.players[i] = {...this.my};
+      else this.players.push({...this.my});
+      this.save();
+      alert("保存成功");
+    },
+    addPlayer() {
+      if(!this.addName) return;
+      this.players.push({
+        name:this.addName, avatar:"", position:"全能", speed:5, stamina:5
+      });
+      this.save();
+      this.addName="";
+      alert("添加成功");
+    },
+    view(p) {
+      this.viewing = p;
+    }
   }
-});
+})
 </script>
 </body>
 </html>
