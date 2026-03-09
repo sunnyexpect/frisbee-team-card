@@ -9,31 +9,93 @@
 <body>
 
 <div id="app">
-  <div class="login-box" v-show="page === 'login'">
-    <h2>🏃‍♂️ 飞盘球员卡</h2>
-    <input v-model="uid" placeholder="输入球衣编号（如001）" />
-    <button @click="login">进入球队</button>
-    <p style="margin-top:10px; font-size:12px; color:#666">队长请输入管理密码</p>
-  </div>
+  <!-- 登录 / 注册 -->
+  <div class="login-box" v-if="page === 'login' || page === 'register'">
+    <h2>🏆 飞盘球员卡系统</h2>
 
-  <div v-show="page === 'user'">
-    <header>我的球员卡</header>
-    <card :player="my"></card>
-  </div>
-
-  <div v-show="page === 'admin'">
-    <header>队长管理面板</header>
-    <div class="list">
-      <div v-for="p in players" @click="select(p)" style="cursor:pointer">
-        #{{ p.number }} {{ p.name }}
-      </div>
+    <div class="tabs">
+      <button @click="tab='login'" :class="{active:tab==='login'}">登录</button>
+      <button @click="tab='register'" :class="{active:tab==='register'}">注册</button>
     </div>
-    <card :player="current" v-if="current"></card>
+
+    <div v-if="tab === 'login'">
+      <input v-model="username" placeholder="账号" />
+      <input v-model="password" type="password" placeholder="密码" />
+      <button @click="login" class="btn-primary">登录</button>
+    </div>
+
+    <div v-if="tab === 'register'">
+      <input v-model="username" placeholder="设置账号" />
+      <input v-model="password" type="password" placeholder="设置密码" />
+      <input v-model="adminSecret" placeholder="队长密钥（没有留空）" />
+      <button @click="register" class="btn-primary">注册</button>
+      <p style="font-size:12px; color:#666; margin-top:8px">队长请向创始人获取密钥</p>
+    </div>
+  </div>
+
+  <!-- 队员页面 -->
+  <div v-if="page === 'user'">
+    <header>我的球员卡</header>
+    <div style="padding:16px">
+      <avatar-upload v-model="avatar"></avatar-upload>
+
+      <div style="margin-bottom:16px">
+        <label>场上位置</label>
+        <select v-model="position" style="width:100%; padding:10px; border-radius:8px; margin-top:4px">
+          <option>全能</option>
+          <option>Cutter 切割手</option>
+          <option>Handler 持盘手</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label>自评速度 (0-10)</label>
+        <input type="range" v-model.number="selfData.physical.speed.self" min="0" max="10" style="width:100%">
+      </div>
+      <div style="margin-bottom:16px">
+        <label>自评耐力 (0-10)</label>
+        <input type="range" v-model.number="selfData.physical.stamina.self" min="0" max="10" style="width:100%">
+      </div>
+      <div style="margin-bottom:16px">
+        <label>自评爆发力 (0-10)</label>
+        <input type="range" v-model.number="selfData.physical.power.self" min="0" max="10" style="width:100%">
+      </div>
+      <div style="margin-bottom:16px">
+        <label>自评灵活性 (0-10)</label>
+        <input type="range" v-model.number="selfData.physical.flex.self" min="0" max="10" style="width:100%">
+      </div>
+
+      <button @click="saveMyData" class="btn-primary" style="width:100%; padding:14px">保存我的资料</button>
+
+      <player-card :info="{
+        avatar: avatar,
+        name: currentUser.username,
+        username: currentUser.username,
+        position: position,
+        physical: selfData.physical,
+        attack: selfData.attack,
+        defense: selfData.defense
+      }" style="margin-top:20px"></player-card>
+    </div>
+  </div>
+
+  <!-- 管理员页面 -->
+  <div v-if="page === 'admin'">
+    <header>队长管理面板</header>
+    <div style="padding:16px">
+      <h3>全队成员</h3>
+      <div class="list">
+        <div v-for="p in players" @click="adminView(p)" style="cursor:pointer">
+          {{ p.username }}
+        </div>
+      </div>
+
+      <player-card v-if="adminViewPlayer" :info="adminViewPlayer" style="margin-top:20px"></player-card>
+    </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
 <script src="app.js"></script>
-
 </body>
 </html>
