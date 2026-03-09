@@ -10,69 +10,52 @@
 
 <div id="app">
   <!-- 登录注册 -->
-  <div class="page" v-if="!isLoggedIn">
-    <div class="box">
-      <h2>🏆 飞盘球队系统</h2>
-      <div class="tabs">
-        <button :class="activeTab === 'login' ? 'active' : ''" @click="activeTab='login'">登录</button>
-        <button :class="activeTab === 'register' ? 'active' : ''" @click="activeTab='register'">注册</button>
+  <div class="login-wrap" v-show="!isLogin">
+    <div class="login-box">
+      <h2>🏆 飞盘球员卡</h2>
+      <div class="tab">
+        <button @click="page='login'" :class="page=='login'?'active':''">登录</button>
+        <button @click="page='register'" :class="page=='register'?'active':''">注册</button>
       </div>
 
-      <div v-if="activeTab === 'login'">
-        <input v-model="loginUser" placeholder="账号" />
-        <input v-model="loginPwd" type="password" placeholder="密码" />
+      <div v-show="page=='login'">
+        <input v-model="username" placeholder="账号" />
+        <input v-model="password" type="password" placeholder="密码" />
         <button class="btn" @click="login">登录</button>
       </div>
 
-      <div v-if="activeTab === 'register'">
-        <input v-model="regUser" placeholder="账号" />
-        <input v-model="regPwd" type="password" placeholder="密码" />
-        <input v-model="regAdminKey" placeholder="队长密钥（无则留空）" />
+      <div v-show="page=='register'">
+        <input v-model="username" placeholder="账号" />
+        <input v-model="password" type="password" placeholder="密码" />
+        <input v-model="adminKey" placeholder="队长密钥" />
         <button class="btn" @click="register">注册</button>
       </div>
     </div>
   </div>
 
   <!-- 队员页面 -->
-  <div class="page" v-if="isLoggedIn && !user.isAdmin">
+  <div v-show="isLogin && !isAdmin">
     <header>我的球员卡</header>
-    <div class="content">
-      <div class="avatar">
-        <img :src="myInfo.avatar || 'https://ui-avatars.com/api/?name=球员'" alt="">
+    <div class="body">
+      <div class="avatar-box">
+        <img :src="avatar" alt="头像">
         <input type="file" accept="image/*" @change="uploadAvatar">
       </div>
-
-      <div class="item">
-        <label>场上位置</label>
-        <select v-model="myInfo.position">
-          <option>全能</option>
-          <option>Cutter 切割手</option>
-          <option>Handler 持盘手</option>
-        </select>
-      </div>
-
-      <button class="btn" @click="saveMyInfo">保存我的资料</button>
-      <div class="card" :info="myInfo"></div>
+      <button class="btn" @click="saveMy">保存资料</button>
     </div>
   </div>
 
   <!-- 管理员页面 -->
-  <div class="page" v-if="isLoggedIn && user.isAdmin">
+  <div v-show="isLogin && isAdmin">
     <header>队长管理</header>
-    <div class="content">
+    <div class="body">
       <div class="add-box">
-        <input v-model="newPlayerName" placeholder="输入队员姓名">
+        <input v-model="newPlayer" placeholder="输入队员姓名">
         <button class="btn" @click="addPlayer">+ 添加队员</button>
       </div>
-
       <div class="list">
-        <div v-for="p in players" @click="openDetail(p)">
-          {{ p.name }}
-        </div>
+        <div v-for="p in players" @click="toDetail(p)">{{ p.name }}</div>
       </div>
-
-      <div class="card" v-if="currentPlayer" :info="currentPlayer"></div>
-      <button class="btn" v-if="currentPlayer" @click="closeDetail">返回列表</button>
     </div>
   </div>
 </div>
