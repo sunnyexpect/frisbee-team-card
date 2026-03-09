@@ -12,7 +12,6 @@
   <!-- 登录 / 注册 -->
   <div class="login-box" v-if="page === 'login' || page === 'register'">
     <h2>🏆 飞盘球员卡系统</h2>
-
     <div class="tabs">
       <button @click="tab='login'" :class="{active:tab==='login'}">登录</button>
       <button @click="tab='register'" :class="{active:tab==='register'}">注册</button>
@@ -48,23 +47,6 @@
         </select>
       </div>
 
-      <div style="margin-bottom:16px">
-        <label>自评速度 (0-10)</label>
-        <input type="range" v-model.number="selfData.physical.speed.self" min="0" max="10" style="width:100%">
-      </div>
-      <div style="margin-bottom:16px">
-        <label>自评耐力 (0-10)</label>
-        <input type="range" v-model.number="selfData.physical.stamina.self" min="0" max="10" style="width:100%">
-      </div>
-      <div style="margin-bottom:16px">
-        <label>自评爆发力 (0-10)</label>
-        <input type="range" v-model.number="selfData.physical.power.self" min="0" max="10" style="width:100%">
-      </div>
-      <div style="margin-bottom:16px">
-        <label>自评灵活性 (0-10)</label>
-        <input type="range" v-model.number="selfData.physical.flex.self" min="0" max="10" style="width:100%">
-      </div>
-
       <button @click="saveMyData" class="btn-primary" style="width:100%; padding:14px">保存我的资料</button>
 
       <player-card :info="{
@@ -82,15 +64,30 @@
   <!-- 管理员页面 -->
   <div v-if="page === 'admin'">
     <header>队长管理面板</header>
-    <div style="padding:16px">
-      <h3>全队成员</h3>
+
+    <!-- 列表 -->
+    <div v-if="adminShowList" style="padding:16px">
+      <h3>新增队员</h3>
+      <input v-model="addPlayerName" placeholder="输入队员姓名" style="width:100%; padding:12px; margin-bottom:8px; border-radius:8px">
+      <button @click="addPlayer" style="background:#FF3366; color:white; border:none; padding:12px; width:100%; border-radius:10px">
+        + 添加队员
+      </button>
+
+      <h3 style="margin-top:20px">全队成员</h3>
       <div class="list">
-        <div v-for="p in players" @click="adminView(p)" style="cursor:pointer">
+        <div v-for="p in players" @click="adminView(p)" style="cursor:pointer; padding:12px; background:white; margin:4px 0; border-radius:10px">
           {{ p.username }}
         </div>
       </div>
+    </div>
 
-      <player-card v-if="adminViewPlayer" :info="adminViewPlayer" style="margin-top:20px"></player-card>
+    <!-- 队员详情 -->
+    <div v-if="!adminShowList && adminViewPlayer">
+      <player-card 
+        :info="adminViewPlayer" 
+        :is-admin="true"
+        @back="backToList"
+      ></player-card>
     </div>
   </div>
 </div>
