@@ -1,114 +1,81 @@
 const ADMIN_KEY = "captain2026";
-const DB_KEY = "FRISBEE_TEAM_DATA";
 
 new Vue({
   el: "#app",
   data: {
-    activeTab: "login",
-    loginUser: "",
-    loginPwd: "",
-    regUser: "",
-    regPwd: "",
-    regAdminKey: "",
+    page: "login",
+    username: "",
+    password: "",
+    adminKey: "",
+    isLogin: false,
+    isAdmin: false,
 
-    user: null,
-    isLoggedIn: false,
-
-    myInfo: {
-      name: "",
-      avatar: "",
-      position: "全能",
-      physical: { speed:5, stamina:5, power:5 },
-      attack: { pass:5, long:5 },
-      defense: { mark:5, block:5 }
-    },
-
-    players: [],
-    currentPlayer: null,
-    newPlayerName: ""
+    avatar: "https://ui-avatars.com/api/?name=球员",
+    newPlayer: "",
+    players: []
   },
 
   created() {
-    this.loadFromStorage();
-    this.autoLogin();
+    const last = localStorage.getItem("lastUser");
+    if (last) {
+      const user = JSON.parse(last);
+      this.username = user.username;
+      this.password = user.password;
+      this.isLogin = true;
+      this.isAdmin = user.isAdmin;
+    }
   },
 
   methods: {
-    // 云端读写
-    loadFromStorage() {
-      const data = JSON.parse(localStorage.getItem(DB_KEY) || '{"users":[],"players":[]}');
-      this.users = data.users || [];
-      this.players = data.players || [];
-    },
-    saveToStorage() {
-      localStorage.setItem(DB_KEY, JSON.stringify({ users: this.users, players: this.players }));
-    },
-
-    // 自动登录
-    autoLogin() {
-      const last = localStorage.getItem("LAST_LOGIN");
-      if (!last) return;
-      const u = this.users.find(x => x.username === last);
-      if (u) {
-        this.user = u;
-        this.isLoggedIn = true;
-      }
-    },
-
-    // 登录
     login() {
-      const u = this.users.find(x => x.username === this.loginUser && x.password === this.loginPwd);
-      if (!u) return alert("账号或密码错误");
-      this.user = u;
-      this.isLoggedIn = true;
-      localStorage.setItem("LAST_LOGIN", u.username);
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const u = users.find(u => u.username == this.username && u.password == this.password);
+      if (!u) {
+        alert("账号或密码错误");
+        return;
+      }
+      this.isLogin = true;
+      this.isAdmin = u.isAdmin;
+      localStorage.setItem("lastUser", JSON.stringify(u));
     },
 
-    // 注册
     register() {
-      if (this.users.some(x => x.username === this.regUser)) return alert("账号已存在");
-      this.users.push({
-        username: this.regUser,
-        password: this.regPwd,
-        isAdmin: this.regAdminKey === ADMIN_KEY
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      if (users.some(x => x.username == this.username)) {
+        alert("账号已存在");
+        return;
+      }
+      const isAdmin = this.adminKey === ADMIN_KEY;
+      users.push({
+        username: this.username,
+        password: this.password,
+        isAdmin: isAdmin
       });
-      this.saveToStorage();
-      alert("注册成功");
-      this.activeTab = "login";
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("注册成功，请登录");
+      this.page = "login";
     },
 
-    // 头像上传
     uploadAvatar(e) {
-      const f = e.target.files[0];
-      const r = new FileReader();
-      r.onload = () => this.myInfo.avatar = r.result;
-      r.readAsDataURL(f);
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => this.avatar = reader.result;
+      reader.readAsDataURL(file);
     },
 
-    saveMyInfo() {
-      const me = this.players.find(x => x.name === this.user.username);
-      if (me) Object.assign(me, this.myInfo);
-      else this.players.push({ ...this.myInfo, name: this.user.username });
-      this.saveToStorage();
+    saveMy() {
       alert("保存成功");
     },
 
-    // 管理员
     addPlayer() {
-      if (!this.newPlayerName) return;
-      this.players.push({
-        name: this.newPlayerName,
-        avatar: "",
-        position: "全能",
-        physical: { speed:5, stamina:5, power:5 },
-        attack: { pass:5, long:5 },
-        defense: { mark:5, block:5 }
-      });
-      this.saveToStorage();
-      this.newPlayerName = "";
+      if (!this.newPlayer) return;
+      this.players.push({ name: this.newPlayer });
+      this.newPlayer = "";
+      alert("添加成功");
     },
 
-    openDetail(p) { this.currentPlayer = p; },
-    closeDetail() { this.currentPlayer = null; }
+    toDetail(p) {
+      alert("查看：" + p.name);
+    }
   }
 });
